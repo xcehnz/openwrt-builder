@@ -33,8 +33,6 @@ jobs:
       - name: Clone Source Code
         run: |
           git clone $REPO_URL -b $REPO_BRANCH openwrt
-          cp $CONFIG_FILE openwrt/.config
-          ls -al
 
       - name: Load custom feeds
         run: |
@@ -52,6 +50,7 @@ jobs:
       - name: Check def config
         working-directory: openwrt
         run: |
+          cp $GITHUB_WORKSPACE/$CONFIG_FILE .config
           ls -al
           echo '+------------------------------+'
           cat .config
