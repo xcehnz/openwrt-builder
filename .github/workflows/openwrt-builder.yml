@@ -37,7 +37,6 @@ jobs:
       - name: Clone Source Code
         run: |
           git clone $REPO_URL -b $REPO_BRANCH openwrt
-          cp $CONFIG_FILE openwrt/.config
 
       - name: Load custom feeds
         run: |
@@ -55,6 +54,7 @@ jobs:
       - name: Download Package
         working-directory: openwrt
         run: |
+          cp $GITHUB_WORKSPACE/$CONFIG_FILE .config
           make defconfig
           make download -j8
 
