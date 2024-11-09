@@ -38,7 +38,6 @@ jobs:
         run: |
           git clone $REPO_URL -b $REPO_BRANCH openwrt
           cp $CONFIG_FILE openwrt/.config
-          cd openwrt && cat .config && make defconfig
 
       - name: Load custom feeds
         run: |
@@ -56,7 +55,7 @@ jobs:
       - name: Download Package
         working-directory: openwrt
         run: |
-          make defconfig
+          cat .config && make defconfig
           make download -j8
 
       - name: Compile Firmware
