@@ -1,0 +1,65 @@
+name: Build OpenWrt
+
+on:
+  repository_dispatch:
+  workflow_dispatch:
+
+env:
+  REPO_URL: https://github.com/coolsnowwolf/lede
+  REPO_BRANCH: master
+  FEEDS_CONF: feeds.conf.default
+  CONFIG_FILE: .config
+  EDIT_FEEDS_SH: edit-feeds.sh
+  TZ: Asia/Shanghai
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialize Environment
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force
+          sudo timedatectl set-timezone "$TZ"
+          sudo mkdir -p /workdir
+          sudo chown $USER:$GROUPS /workdir
+
+      - name: Clone Source Code
+        run: |
+          git clone $REPO_URL -b $REPO_BRANCH openwrt
+          cp $CONFIG_FILE openwrt/.config
+          ls -al
+
+      - name: Load custom feeds
+        run: |
+          [ -e $FEEDS_CONF ] && mv $FEEDS_CONF openwrt/feeds.conf.default
+          chmod +x $EDIT_FEEDS_SH
+          cd openwrt
+          $GITHUB_WORKSPACE/$EDIT_FEEDS_SH
+
+      - name: Update & Install Feeds
+        working-directory: openwrt
+        run: |
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
+      
+      - name: Check def config
+        working-directory: openwrt
+        run: |
+          ls -al
+          echo '+------------------------------+'
+          cat .config
+
+      - name: Make Defconfig
+        working-directory: openwrt
+        run: |
+          make defconfig
+          echo '+------------------------------+'
+          cat .config
+
